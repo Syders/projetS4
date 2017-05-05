@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
-#define MAX_SIZE 20
 #define EMPTY 'e'
 #define BLACK 'b'
 #define WHITE 'w'
@@ -9,9 +8,16 @@
 #define CHECKEDWHITE 'W'
 struct board {
     int size; /*the size of the board*/
-    char board[MAX_SIZE][MAX_SIZE]; /*the board itself*/
+    char board*; /*the board itself*/
 };
 typedef struct board *Board;
+
+
+char board_char(Board b,int l, int c){
+	//Return the cell
+	return b->board[l*b->size+c];
+}
+//Yes
 Board newBoard(int size) {
     /*Initializes a board
         size is the size of the board
@@ -19,11 +25,15 @@ Board newBoard(int size) {
     */
     Board b = malloc(sizeof(struct board));
     b->size = size;
-    for (int i = 0; i < size; i++)
-        for (int j = 0; j < size; j++)
-            b->board[i][j] = EMPTY;
+    for (int i = 0; i < size; i++){
+        for (int j = 0; j < size; j++){
+			b->board[i*size+j] = malloc(sizeof(char));
+			b->board[i*size+j] = EMPTY;
+		}
+	}
     return b;
 }
+//YES
 bool turnIsValid(Board b, int l, int c) {
     /*Checks whether the turn is valid
         b is the board of the game
@@ -31,8 +41,9 @@ bool turnIsValid(Board b, int l, int c) {
         c is the column of the desired location
         Returns 1 if it's valid, 0 if it's not
     */
-    return b->board[l][c] == EMPTY;
+    return b->board[l*b->size+c] == EMPTY;
 }
+//YES
 Board newTurn(Board b, bool player, int l, int c) {
     /*Allows to play a turn (ASSUMES THE TURN IS VALID)
         b is the board of the game
@@ -42,11 +53,12 @@ Board newTurn(Board b, bool player, int l, int c) {
         Returns the board with the turn played
     */
     if (player)
-        b->board[l][c] = WHITE;
+        b->board[l*b->size+c] = WHITE;
     else
-        b->board[l][c] = BLACK;
+        b->board[l*b->size+c] = BLACK;
     return b;
 }
+//X
 bool checkBlackWinner(Board b, int l, int c) {
     /*Recursive function that checks whether a plot is a black one that hasn't
     been checked previously and calls iself with the coordinates of the
@@ -59,8 +71,8 @@ bool checkBlackWinner(Board b, int l, int c) {
         return 0;
     if (c == b->size)
         return 1;
-    if (b->board[l][c] == BLACK)
-        b->board[l][c] = CHECKEDBLACK;
+    if (b->board[l*b->size+c] == BLACK)
+        b->board[l*b->size+c] = CHECKEDBLACK;
     else
         return 0;
     if (checkBlackWinner(b,l+1,c))
@@ -77,6 +89,7 @@ bool checkBlackWinner(Board b, int l, int c) {
         return 1;
     return 0;
 }
+//X
 bool checkWhiteWinner(Board b, int l, int c) {
     /*Recursive function that checks whether a plot is a white one that hasn't
     been checked previously and calls iself with the coordinates of the
@@ -89,8 +102,8 @@ bool checkWhiteWinner(Board b, int l, int c) {
         return 0;
     if (l == b->size)
         return 1;
-    if (b->board[l][c] == WHITE)
-        b->board[l][c] = CHECKEDWHITE;
+    if (b->board[l*b->size+c] == WHITE)
+        b->board[l*b->size+c] = CHECKEDWHITE;
     else
         return 0;
     if (checkWhiteWinner(b,l+1,c))
@@ -107,38 +120,44 @@ bool checkWhiteWinner(Board b, int l, int c) {
         return 1;
     return 0;
 }
+//X
 Board cleanBoard(Board b) {
     /*Returns to a normal state all the "checked" plots
         b is the board to clean
         Returns the cleaned board
     */
-    for (int i = 0; i < b->size; i++)
+    for (int i = 0; i < b->size; i++){
         for (int j = 0; j < b->size; j++) {
-            if (b->board[i][j] == CHECKEDBLACK)
-                b->board[i][j] = BLACK;
-            if (b->board[i][j] == CHECKEDWHITE)
-                b->board[i][j] = WHITE;
+            if (b->board[i*b->size+j] == CHECKEDBLACK)
+                b->board[i*b->size+j] = BLACK;
+            if (b->board[i*b->size+j] == CHECKEDWHITE)
+                b->board[i*b->size+j] = WHITE;
         }
+	}
     return b;
 }
+//Yes,checkBlackWinner,checkWhiteWinner,cleanBoard
 char checkWinner(Board b) {
     /*Checks who is the winner (if there is one)
         b is the board of the game
         Returns EMPTY if no winner, BLACK or WHITE if there is one
     */
-    for (int i = 0; i < b->size; i++)
+    for (int i = 0; i < b->size; i++){
         if (checkBlackWinner(b,i,0)) {
             b = cleanBoard(b);
             return BLACK;
         }
-    for (int i = 0; i < b->size; i++)
+	}
+    for (int i = 0; i < b->size; i++){
         if (checkWhiteWinner(b,0,i)) {
             b = cleanBoard(b);
             return WHITE;
         }
+	}
     b = cleanBoard(b);
     return EMPTY;
 }
+//Yes
 void newGame(char* name, int size) {
     /*Creates a new game
         name is the name of the file
@@ -154,6 +173,7 @@ void newGame(char* name, int size) {
     fputs("\\endboard\n\\game\n\\endgame\n\\endhex",f);
     fclose(f);
 }
+//X
 bool isValid(char* name, int l, int c) {
     /*Checks whether the turn is valid
         name is the name of the game (the game has already been created)
@@ -183,6 +203,7 @@ bool isValid(char* name, int l, int c) {
         return 0;
     return 1;
 }
+// Yes,is Valid
 bool turn(char* name, bool player, int l, int c) {
     /*Allows to play a turn
         name is the name of the game (the game has already been created)
@@ -213,16 +234,17 @@ bool turn(char* name, bool player, int l, int c) {
     fclose(f);
     return 1;
 }
-int main() {
-    /*It's a test program*/
+//Test
+/*int main() {
+    *It's a test program*
     Board b = newBoard(4);
-    //printf("%d\n",turnIsValid(b,0,3));
+    printf("%d\n",turnIsValid(b,0,3));
     b = newTurn(b,0,3,0);
-    //printf("%d\n",turnIsValid(b,3,0));
+    printf("%d\n",turnIsValid(b,3,0));
     b = newTurn(b,0,3,1);
     b = newTurn(b,0,3,2);
     b = newTurn(b,0,3,3);
     printf("%c\n",checkWinner(b));
-    /*printf("%d\n",isValid("jeu",3,4));*/
+    printf("%d\n",isValid("jeu",3,4));
     return 0;
-}
+}*/
