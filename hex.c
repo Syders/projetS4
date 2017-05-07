@@ -1,22 +1,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include "hex.h"
 #define EMPTY 'e'
 #define BLACK 'b'
 #define WHITE 'w'
 #define CHECKEDBLACK 'B'
 #define CHECKEDWHITE 'W'
+#define MAXSIZE 20
 struct board {
     int size; /*the size of the board*/
-    char board*; /*the board itself*/
+    char * board; /*the board itself*/
 };
-typedef struct board *Board;
 
-
-char board_char(Board b,int l, int c){
-	//Return the cell
-	return b->board[l*b->size+c];
-}
 //Yes
 Board newBoard(int size) {
     /*Initializes a board
@@ -24,10 +20,11 @@ Board newBoard(int size) {
         Returns the created board
     */
     Board b = malloc(sizeof(struct board));
+	b->board = (char*)malloc(sizeof(char));
     b->size = size;
     for (int i = 0; i < size; i++){
         for (int j = 0; j < size; j++){
-			b->board[i*size+j] = malloc(sizeof(char));
+			b->board =(char*) realloc(b->board,sizeof(char));
 			b->board[i*size+j] = EMPTY;
 		}
 	}
@@ -181,19 +178,19 @@ bool isValid(char* name, int l, int c) {
         c is the column of the desired location
         Returns 1 if it's valid, 0 if it's not
     */
-    int size;
+	int size;
     FILE *f = fopen(name,"rt");
-    char str[MAX_SIZE]; /*it's a dump to store unnecessary lines*/
+    char str[MAXSIZE]; /*it's a dump to store unnecessary lines*/
     int ch; /*the value of the desired location*/
-    fgets(str, MAX_SIZE, f); /*reading of the line "\hex"*/
+    fgets(str, MAXSIZE, f); /*reading of the line "\hex"*/
     fscanf(f,"\\dim %d\n",&size);
     if((l >= size) || (c >= size)) {
         fclose(f);
         return 0;
     }
-    fgets(str, MAX_SIZE, f); /*reading of the line "\board"*/
+    fgets(str, MAXSIZE, f); /*reading of the line "\board"*/
     for (int i = 0; i < l; i++)
-        fgets(str, MAX_SIZE, f); /*reading of the ith line of the board*/
+        fgets(str, MAXSIZE, f); /*reading of the ith line of the board*/
     for (int i = 0; i < c; i++)
         fgetc(f); /*reading of the ith character of the lth line of the board*/
     ch = fgetc(f);
@@ -214,14 +211,14 @@ bool turn(char* name, bool player, int l, int c) {
     */
     if (! isValid(name, l, c))
         return 0;
-    char str[MAX_SIZE]; /*it's a dump to store unnecessary lines*/
+    char str[MAXSIZE]; /*it's a dump to store unnecessary line*/
     FILE *f = fopen(name,"r+t");
     char ch; /*the character to be printed*/
     rewind(f);
     for (int i = 0; i < 3; i++)
-        fgets(str, MAX_SIZE, f); /*reading of the first three lines*/
+        fgets(str, MAXSIZE, f); /*reading of the first three lines*/
     for (int i = 0; i < l; i++)
-        fgets(str, MAX_SIZE, f); /*reading of the ith line of the board*/
+        fgets(str, MAXSIZE, f); /*reading of the ith line of the board*/
     for (int i = 0; i < c; i++)
         fgetc(f); /*reading of the ith character of the lth line of the board*/
     if (player) /*white*/
@@ -235,8 +232,8 @@ bool turn(char* name, bool player, int l, int c) {
     return 1;
 }
 //Test
-/*int main() {
-    *It's a test program*
+int main() {
+    /*It's a test program*/
     Board b = newBoard(4);
     printf("%d\n",turnIsValid(b,0,3));
     b = newTurn(b,0,3,0);
@@ -245,6 +242,6 @@ bool turn(char* name, bool player, int l, int c) {
     b = newTurn(b,0,3,2);
     b = newTurn(b,0,3,3);
     printf("%c\n",checkWinner(b));
-    printf("%d\n",isValid("jeu",3,4));
+    printf("%d\n",isValid("jeu",3,4,b->size));
     return 0;
-}*/
+}
