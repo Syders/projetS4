@@ -20,11 +20,11 @@ Board newBoard(int size) {
         Returns the created board
     */
     Board b = malloc(sizeof(struct board));
-	b->board = (char*)malloc(sizeof(char));
+	b->board = (char*)malloc(sizeof(char) * size * size);
     b->size = size;
     for (int i = 0; i < size; i++){
         for (int j = 0; j < size; j++){
-			b->board =(char*) realloc(b->board,sizeof(char));
+			//b->board =(char*) realloc(b->board,sizeof(char));
 			b->board[i*size+j] = EMPTY;
 		}
 	}
@@ -231,17 +231,46 @@ bool turn(char* name, bool player, int l, int c) {
     fclose(f);
     return 1;
 }
+Board loadGame(char* name) {
+    /* Creates a board based on the savefile
+        name is the name of the game (the game has already been created)
+        Returns the board corresponding to the game
+    */
+    int size;
+    int ch; /*the character to store the value of a tile*/
+    FILE *f = fopen(name,"rt");
+    char str[MAXSIZE]; /*it's a dump to store unnecessary lines*/
+    fgets(str, MAXSIZE, f); /*reading of the line "\hex"*/
+    fscanf(f,"\\dim %d\n",&size);
+    Board b = newBoard(size);
+    fgets(str, MAXSIZE, f); /*reading of the line "\board"*/
+    for(int i = 0; i < size; i++) {
+        for(int j = 0; j < size; j++) {
+            ch = fgetc(f);
+            if (ch == '*')
+                b->board[i*b->size+j] = BLACK;
+            if (ch == 'o')
+                b->board[i*b->size+j] = WHITE;
+        }
+        ch = fgetc(f); /*'\n'*/
+    }
+    fclose(f);
+    return b;
+}
 //Test
 int main() {
     /*It's a test program*/
     Board b = newBoard(4);
     printf("%d\n",turnIsValid(b,0,3));
-    b = newTurn(b,0,3,0);
+    b = newTurn(b,1,0,3);
     printf("%d\n",turnIsValid(b,3,0));
-    b = newTurn(b,0,3,1);
-    b = newTurn(b,0,3,2);
-    b = newTurn(b,0,3,3);
+    b = newTurn(b,1,1,3);
+    b = newTurn(b,1,2,3);
+    b = newTurn(b,1,3,3);
     printf("%c\n",checkWinner(b));
-    printf("%d\n",isValid("jeu",3,4,b->size));
+    //newGame("jeu",10);
+    b = loadGame("jeu");
+    printf("%s\n",b->board);
+    printf("%d\n",isValid("jeu",3,4));
     return 0;
 }
