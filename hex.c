@@ -1,10 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <string.h>
 #include "hex.h"
-#define EMPTY '.'
-#define BLACK '*'
-#define WHITE 'o'
 #define CHECKEDBLACK 'B'
 #define CHECKEDWHITE 'W'
 #define MAXSIZE 20
@@ -12,9 +10,34 @@ struct board {
     int size; /*the size of the board*/
     char * board; /*the board itself*/
 };
-//Fonction test
+
+struct _joueur{
+    int noJoueur;
+    char * dernierCoupJoue;
+    char pionDuJoueur;
+    int noTour;
+};
+
+Joueur creerInformation(int noJoueur){
+    Joueur j=(Joueur)malloc(sizeof(struct _joueur));
+    j->noJoueur=noJoueur;
+    j->dernierCoupJoue=(char *)malloc(sizeof(char)*10);
+    sprintf(j->dernierCoupJoue," ");
+    j->noTour=1;
+    j->pionDuJoueur='.';
+    return j;
+}
+
+void deleteInformation(Joueur j){
+    free(j);
+}
+
+void affichageInformation(Joueur jActuelle){
+    printf("Joueur n°%d\nTour n°%d\nDernier Coup joué:%s\n",jActuelle->noJoueur,jActuelle->noTour,jActuelle->dernierCoupJoue);
+}
 
 void affichageTableau(Board b){
+                printf("\n\n");
 		for(int i=0;i<b->size;i++){
 			printf("W ");
 		}
@@ -54,18 +77,41 @@ Board newBoard(int size) {
 	}
     return b;
 }
+
+void freeBoard(Board b){
+    free(b->board);
+    free(b);
+}
 //YES
-bool turnIsValid(char * b,int size, int l, int c) {
+bool turnIsValid(Board b, int l, int c) {
     /*Checks whether the turn is valid
         b is the board of the game
         l is the line of the desired location
         c is the column of the desired location
         Returns 1 if it's valid, 0 if it's not
     */
-    return b[l*size+c] == EMPTY;
+    return b->board[l*b->size+c] == EMPTY;
+}
+
+/*                                      *
+ *  Demarre une nouvelle partie         *
+ *  et demande au joueur 1 de choisir   *
+ *  son pion                            *
+ *                                      */
+Board startNewGame(Joueur j1, Joueur j2){
+    printf("\nChoisissez la taille du plateau [superieur à 2]");
+    int taille=1;
+    while(taille<=2)scanf("%d",&taille);
+    Board b=newBoard(taille);
+    printf("\nJoueur 1 vous voulez quel pion? [soit * ou o] (Joueur 2 aura l'autre pion)");
+    char pion='.';
+    while(pion!=BLACK && pion!=WHITE)scanf("%c",&pion);
+    j1->pionDuJoueur=pion;
+    j2->pionDuJoueur=(pion==BLACK) ? WHITE: BLACK;
+    return b;
 }
 //YES
-char * newTurn(char * b,int size, bool player, int l, int c) {
+Board newTurn(Board b, bool player, int l, int c) {
     /*Allows to play a turn (ASSUMES THE TURN IS VALID)
         b is the board of the game
         player is 0 if black, 1 if white
@@ -74,13 +120,13 @@ char * newTurn(char * b,int size, bool player, int l, int c) {
         Returns the board with the turn played
     */
     if (player)
-        b[l*size+c] = WHITE;
+        b->board[l*b->size+c] = WHITE;
     else
-        b[l*size+c] = BLACK;
+        b->board[l*b->size+c] = BLACK;
     return b;
 }
 //X
-bool checkBlackWinner(char * b,int size, int l, int c) {
+bool checkBlackWinner(Board b, int l, int c) {
     /*Recursive function that checks whether a plot is a black one that hasn't
     been checked previously and calls iself with the coordinates of the
     neighbouring plots
@@ -88,30 +134,30 @@ bool checkBlackWinner(char * b,int size, int l, int c) {
         l is the line of the plot being checked
         c is the column of the plot being checked
     */
-    if ((l == -1) || (c == -1) || (l == size))
+    if ((l == -1) || (c == -1) || (l == b->size))
         return 0;
-    if (c == size)
+    if (c == b->size)
         return 1;
-    if (b[l*size+c] == BLACK)
-        b[l*size+c] = CHECKEDBLACK;
+    if (b->board[l*b->size+c] == BLACK)
+        b->board[l*b->size+c] = CHECKEDBLACK;
     else
         return 0;
-    if (checkBlackWinner(b,size,l+1,c))
+    if (checkBlackWinner(b,l+1,c))
         return 1;
-    if (checkBlackWinner(b,size,l-1,c))
+    if (checkBlackWinner(b,l-1,c))
         return 1;
-    if (checkBlackWinner(b,size,l,c+1))
+    if (checkBlackWinner(b,l,c+1))
         return 1;
-    if (checkBlackWinner(b,size,l,c-1))
+    if (checkBlackWinner(b,l,c-1))
         return 1;
-    if (checkBlackWinner(b,size,l+1,c-1))
+    if (checkBlackWinner(b,l+1,c-1))
         return 1;
-    if (checkBlackWinner(b,size,l-1,c+1))
+    if (checkBlackWinner(b,l-1,c+1))
         return 1;
     return 0;
 }
 //X
-bool checkWhiteWinner(char * b,int size, int l, int c) {
+bool checkWhiteWinner(Board b, int l, int c) {
     /*Recursive function that checks whether a plot is a white one that hasn't
     been checked previously and calls iself with the coordinates of the
     neighbouring plots
@@ -119,63 +165,63 @@ bool checkWhiteWinner(char * b,int size, int l, int c) {
         l is the line of the plot being checked
         c is the column of the plot being checked
     */
-    if ((l == -1) || (c == -1) || (c == size))
+    if ((l == -1) || (c == -1) || (c == b->size))
         return 0;
-    if (l == size)
+    if (l == b->size)
         return 1;
-    if (b[l*size+c] == WHITE)
-        b[l*size+c] = CHECKEDWHITE;
+    if (b->board[l*b->size+c] == WHITE)
+        b->board[l*b->size+c] = CHECKEDWHITE;
     else
         return 0;
-    if (checkWhiteWinner(b,size,l+1,c))
+    if (checkWhiteWinner(b,l+1,c))
         return 1;
-    if (checkWhiteWinner(b,size,l-1,c))
+    if (checkWhiteWinner(b,l-1,c))
         return 1;
-    if (checkWhiteWinner(b,size,l,c+1))
+    if (checkWhiteWinner(b,l,c+1))
         return 1;
-    if (checkWhiteWinner(b,size,l,c-1))
+    if (checkWhiteWinner(b,l,c-1))
         return 1;
-    if (checkWhiteWinner(b,size,l+1,c-1))
+    if (checkWhiteWinner(b,l+1,c-1))
         return 1;
-    if (checkWhiteWinner(b,size,l-1,c+1))
+    if (checkWhiteWinner(b,l-1,c+1))
         return 1;
     return 0;
 }
 //X
-char * cleanBoard(char * b,int size) {
+Board cleanBoard(Board b) {
     /*Returns to a normal state all the "checked" plots
         b is the board to clean
         Returns the cleaned board
     */
-    for (int i = 0; i < size; i++){
-        for (int j = 0; j < size; j++) {
-            if (b[i*size+j] == CHECKEDBLACK)
-                b[i*size+j] = BLACK;
-            if (b[i*size+j] == CHECKEDWHITE)
-                b[i*size+j] = WHITE;
+    for (int i = 0; i < b->size; i++){
+        for (int j = 0; j < b->size; j++) {
+            if (b->board[i*b->size+j] == CHECKEDBLACK)
+                b->board[i*b->size+j] = BLACK;
+            if (b->board[i*b->size+j] == CHECKEDWHITE)
+                b->board[i*b->size+j] = WHITE;
         }
 	}
     return b;
 }
 //Yes,checkBlackWinner,checkWhiteWinner,cleanBoard
-char checkWinner(char * b,int size) {
+char checkWinner(Board b) {
     /*Checks who is the winner (if there is one)
         b is the board of the game
         Returns EMPTY if no winner, BLACK or WHITE if there is one
     */
-    for (int i = 0; i < size; i++){
-        if (checkBlackWinner(b,size,i,0)) {
-            b = cleanBoard(b,size);
+    for (int i = 0; i < b->size; i++){
+        if (checkBlackWinner(b,i,0)) {
+            b = cleanBoard(b);
             return BLACK;
         }
 	}
-    for (int i = 0; i < size; i++){
-        if (checkWhiteWinner(b,size,0,i)) {
-            b = cleanBoard(b,size);
+    for (int i = 0; i < b->size; i++){
+        if (checkWhiteWinner(b,0,i)) {
+            b = cleanBoard(b);
             return WHITE;
         }
 	}
-    b = cleanBoard(b,size);
+    b = cleanBoard(b);
     return EMPTY;
 }
 //Yes
@@ -236,7 +282,7 @@ bool turn(char* name, bool player, int l, int c) {
     if (! isValid(name, l, c))
         return 0;
     char str[MAXSIZE]; /*it's a dump to store unnecessary line*/
-    FILE *f = fopen(name,"rt");
+    FILE *f = fopen(name,"r+t");
     char ch; /*the character to be printed*/
     rewind(f);
     for (int i = 0; i < 3; i++)
@@ -251,40 +297,24 @@ bool turn(char* name, bool player, int l, int c) {
         ch = '*';
     fputc(ch,f);
     fseek(f,-16,SEEK_END); /*the cursor is placed at the beginning of the last but one line*/
-    fprintf(f,"\\play %c %d %d\n\\endgame\n\\endhex",ch,c,l);
+    fprintf(f,"\\play %c %d %d\n\\endgame\n\\endhex",ch,l,c);
     fclose(f);
     return 1;
 }
-void saveGame(char * name,char * b, int size){
-
-    FILE *f = fopen(name,"wt");
-    fprintf(f,"\\hex\n\\dim %d\n\\board\n",size);
-    for(int i = 0; i < size; i++) {
-        for(int j = 0; j < size; j++)
-            fprintf(f,"%c ",b[i*size+j]);
-        fputc('\n',f);
-    }
-    fputs("\\endboard\n\\game\n\\endgame\n\\endhex",f);
-    fclose(f);
-}
 
 bool savePresent(char * name){
-    return (fopen(name,"wt")!=EOF);
+    /*
+     * Return if the save is present
+     */
+    return (fopen(name,"wt")!=NULL);
 }
 
-int loadGameSize(char * name){
-	int size;
-    FILE *f = fopen(name,"rt");
-    char str[MAXSIZE]; /*it's a dump to store unnecessary lines*/
-    fgets(str, MAXSIZE, f); /*reading of the line "\hex"*/
-    fscanf(f,"\\dim %d\n",&size);
-	return size;
-}
 
-char * loadGameTab(char* name) {
+Board loadGame(char* name,Joueur joueurAct,Joueur j1, Joueur j2) {
     /* Creates a board based on the savefile
         name is the name of the game (the game has already been created)
-        Returns the board corresponding to the game
+        Returns the board  corresponding to the game 
+        and the last player who have played
     */
     int size;
     int ch; /*the character to store the value of a tile*/
@@ -294,6 +324,7 @@ char * loadGameTab(char* name) {
     fscanf(f,"\\dim %d\n",&size);
     Board b = newBoard(size);
     fgets(str, MAXSIZE, f); /*reading of the line "\board"*/
+    
     for(int i = 0; i < size; i++) {
         for(int j = 0; j < size; j++) {
             ch = fgetc(f);
@@ -305,32 +336,64 @@ char * loadGameTab(char* name) {
             else if (ch== '.')
                 b->board[i*b->size+j] = EMPTY;
         }
-        printf("\n");
     }
+    //Who have played last? && what are the information
+    char saveline[MAXSIZE];//Knowing the line where is the information
+    char endgame[MAXSIZE]="\\endgame\n";//The last line of the game
+    for(int i=0;i<3;i++)fgets(str, MAXSIZE, f);//endboard/endhexS
+    bool first=true,jOne=true;//jOne pour compter le nombre de coup joué
+    while(strcmp(str,endgame)){
+        fgets(str, MAXSIZE, f);
+        if(first){
+            if(str[6]==WHITE){
+                j1->pionDuJoueur=WHITE;
+                j2->pionDuJoueur=BLACK;
+            }else{
+                j1->pionDuJoueur=BLACK;
+                j2->pionDuJoueur=WHITE; 
+            }
+            j1->noTour=0;
+            j1->noJoueur=1;
+            j2->noTour=0;
+            j2->noJoueur=2;
+            first=false;
+        }
+        if(jOne){
+            j1->noTour++;
+            j1->dernierCoupJoue=strpbrk(str,"1234567890");
+        }else{
+            j2->noTour++;
+            j2->dernierCoupJoue=strpbrk(str,"1234567890");
+        
+        }
+        if(strcmp(str,endgame)){
+            strcpy(saveline,str);
+        }
+    }
+    joueurAct=saveline[6]==(j1)->pionDuJoueur?(j1):(j2);//the color of the last player who have played
     fclose(f);
-    return b->board;
+    return b;
+}
+
+void caseJoue(int size,int * l, int * c){
+    printf("\nLigne:[compris entre 1 et %d]", size);
+    int ligne,colonne;
+    do{
+        scanf("%d",&ligne);
+    }while(ligne<1 || ligne>size);
+    printf("\nColonne:[compris entre 1 et %d]", size);
+    do{
+        scanf("%d",&colonne);
+    }while(colonne<1 || colonne>size);
+    *l=ligne-1;
+    *c=colonne-1;
+}
+
+Board annulerCoup(Board b, int l, int c){
+    b->board[l*b->size+c]=EMPTY;
+    return b;
 }
 
 
-/*test
-int main() {
-    It's a test program
-    Board b = newBoard(4);
-    affichageTableau(b);
-    printf("%d\n",turnIsValid(b,0,3));
-    b = newTurn(b,1,0,3);
-    printf("%d\n",turnIsValid(b,3,0));
-    b = newTurn(b,1,1,3);
-    b = newTurn(b,1,2,3);
-    b = newTurn(b,1,3,3);
-    printf("%c\n",checkWinner(b));
-     affichageTableau(b);
-     printf("\n");
-    saveGame("jeu",b->board,b->size);
-    //newGame("jeu",10);
-    b = loadGame("jeu");
-    affichageTableau(b);
-    //printf("%s\n",b->board);
-    //printf("%d\n",isValid("jeu",3,4));
-    return 0;
-}*/
+
+
