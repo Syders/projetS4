@@ -9,14 +9,23 @@
 #define WHITE 'o'
 
 
-typedef struct board *Board;
-typedef struct _joueur *Joueur;
+typedef struct board {
+    int size; /*the size of the board*/
+    char * board; /*the board itself*/
+} * Board;
+
+typedef struct _joueur{
+    int noJoueur;
+    char * dernierCoupJoue;
+    char pionDuJoueur;
+    int noTour;
+} * Joueur;
 
 Joueur creerInformation(int noJoueur);
 void deleteInformation(Joueur j);
 void affichageInformation(Joueur jActuelle);
 void freeBoard(Board b);
-Board startNewGame(Joueur j1, Joueur j2);
+Board startNewGame(Joueur * j1, Joueur * j2);
 bool savePresent(char * name);
 void affichageTableau(Board b);
 Board newBoard(int size);
@@ -25,7 +34,7 @@ Board newTurn(Board b, bool player, int l, int c);
 char checkWinner(Board b);
 void newGame(char * name, int size);
 bool turn(char* name, bool player, int l, int c);
-Board loadGame(char* name,Joueur  joueurAct,Joueur  j1, Joueur  J2);
+Board loadGame(char* name,Joueur * joueurAct,Joueur * j1, Joueur * J2);
 void caseJoue(int size,int * l, int * c);
 Board annulerCoup(Board b, int l, int c);
 

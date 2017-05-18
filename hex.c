@@ -6,17 +6,6 @@
 #define CHECKEDBLACK 'B'
 #define CHECKEDWHITE 'W'
 #define MAXSIZE 20
-struct board {
-    int size; /*the size of the board*/
-    char * board; /*the board itself*/
-};
-
-struct _joueur{
-    int noJoueur;
-    char * dernierCoupJoue;
-    char pionDuJoueur;
-    int noTour;
-};
 
 Joueur creerInformation(int noJoueur){
     Joueur j=(Joueur)malloc(sizeof(struct _joueur));
@@ -98,7 +87,7 @@ bool turnIsValid(Board b, int l, int c) {
  *  et demande au joueur 1 de choisir   *
  *  son pion                            *
  *                                      */
-Board startNewGame(Joueur j1, Joueur j2){
+Board startNewGame(Joueur * j1, Joueur * j2){
     printf("\nChoisissez la taille du plateau [superieur à 2]");
     int taille=1;
     while(taille<=2)scanf("%d",&taille);
@@ -106,8 +95,8 @@ Board startNewGame(Joueur j1, Joueur j2){
     printf("\nJoueur 1 vous voulez quel pion? [soit * ou o] (Joueur 2 aura l'autre pion)");
     char pion='.';
     while(pion!=BLACK && pion!=WHITE)scanf("%c",&pion);
-    j1->pionDuJoueur=pion;
-    j2->pionDuJoueur=(pion==BLACK) ? WHITE: BLACK;
+    (*j1)->pionDuJoueur=pion;
+    (*j2)->pionDuJoueur=(pion==BLACK) ? WHITE: BLACK;
     return b;
 }
 //YES
@@ -306,11 +295,11 @@ bool savePresent(char * name){
     /*
      * Return if the save is present
      */
-    return (fopen(name,"wt")!=NULL);
+    return (fopen(name,"rt")!=NULL);
 }
 
 
-Board loadGame(char* name,Joueur joueurAct,Joueur j1, Joueur j2) {
+Board loadGame(char* name,Joueur * joueurAct,Joueur * j1, Joueur * j2) {
     /* Creates a board based on the savefile
         name is the name of the game (the game has already been created)
         Returns the board  corresponding to the game 
@@ -346,31 +335,29 @@ Board loadGame(char* name,Joueur joueurAct,Joueur j1, Joueur j2) {
         fgets(str, MAXSIZE, f);
         if(first){
             if(str[6]==WHITE){
-                j1->pionDuJoueur=WHITE;
-                j2->pionDuJoueur=BLACK;
+                (*j1)->pionDuJoueur=WHITE;
+                (*j2)->pionDuJoueur=BLACK;
             }else{
-                j1->pionDuJoueur=BLACK;
-                j2->pionDuJoueur=WHITE; 
+                (*j1)->pionDuJoueur=BLACK;
+                (*j2)->pionDuJoueur=WHITE; 
             }
-            j1->noTour=0;
-            j1->noJoueur=1;
-            j2->noTour=0;
-            j2->noJoueur=2;
             first=false;
         }
+
         if(jOne){
-            j1->noTour++;
-            j1->dernierCoupJoue=strpbrk(str,"1234567890");
+            (*j1)->noTour++;
+            (*j1)->dernierCoupJoue=strpbrk(str,"1234567890");
         }else{
-            j2->noTour++;
-            j2->dernierCoupJoue=strpbrk(str,"1234567890");
+            (*j2)->noTour++;
+            (*j2)->dernierCoupJoue=strpbrk(str,"1234567890");
         
         }
         if(strcmp(str,endgame)){
             strcpy(saveline,str);
         }
+        jOne=!jOne;
     }
-    joueurAct=saveline[6]==(j1)->pionDuJoueur?(j1):(j2);//the color of the last player who have played
+    (*joueurAct)=saveline[6]==(*j1)->pionDuJoueur?(*j2):(*j1);//the color of the last player who have to played
     fclose(f);
     return b;
 }

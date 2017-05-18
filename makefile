@@ -1,7 +1,7 @@
 #makefile hex
 CC=gcc
-OPT=-Wall -g
-EXEC= binary
+OPT=-Wall -std=c99 -g
+EXEC= hex
 all : $(EXEC)
 
 
