@@ -32,11 +32,16 @@ void game(Board b, Joueur jAct, Joueur j1, Joueur j2){
     int annule;
     int ligne,colonne;
     int termine;
+    //printf("\nPion J1= %c,dernierCoupJoue= %s",j1->pionDuJoueur,j1->dernierCoupJoue);
+    //printf("\nPion J2= %c,dernierCoupJoue= %s",j2->pionDuJoueur,j2->dernierCoupJoue);
+    
     do{
         affichageInformation(jAct);
         printf("\nJoueur %d a vous jouer:",jAct->noJoueur);
         do{
             caseJoue(b->size,&ligne,&colonne);
+            if(!turnIsValid(b,ligne,colonne))
+                printf("\nCase non valide.Recommencer.");
         }while(!turnIsValid(b,ligne,colonne));
         b=newTurn(b,(jAct->pionDuJoueur==WHITE),ligne,colonne);
         affichageTableau(b);
@@ -62,11 +67,12 @@ void game(Board b, Joueur jAct, Joueur j1, Joueur j2){
         }
     }while(joueurG==EMPTY && termine==0);
     //If a winner is designed
-    printf("%c",joueurG);
-    if(joueurG==j1->pionDuJoueur)
-        printf("\n\nLe gagnant est le joueur 1");
-    else if (joueurG==j2->pionDuJoueur)
-        printf("\n\nLe gagnant est le joueur 2");
+    if(joueurG==j1->pionDuJoueur) {
+        printf("\nLe gagnant est le joueur 1");
+    }
+    else if (joueurG==j2->pionDuJoueur){
+        printf("\nLe gagnant est le joueur 2");
+    }
     //If not a finish game
     if(termine==1){
         printf("\n\nVoulez-vous sauvegarder la partie? [0 pour non,1 pour oui]");
@@ -95,12 +101,14 @@ int main() {
     int choix=principalMenu();
     if(choix==1){
         b=startNewGame(&j1,&j2);
-        joueurAct=(j1->pionDuJoueur==WHITE)?j1:j2;
+        joueurAct=j1;
         newGame("jeu.txt",b->size);
     }else if(choix==2)
         b=loadGame("jeu.txt",&joueurAct,&j1,&j2);
     else
         return 0;
+    printf("\nPion J1= %c,dernierCoupJoue= %s",j1->pionDuJoueur,j1->dernierCoupJoue);
+    printf("\nPion J2= %c,dernierCoupJoue= %s",j2->pionDuJoueur,j2->dernierCoupJoue);
     game(b,joueurAct,j1,j2);
     
     return 0;

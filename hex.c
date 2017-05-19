@@ -22,7 +22,7 @@ void deleteInformation(Joueur j){
 }
 
 void affichageInformation(Joueur jActuelle){
-    printf("Joueur n°%d\nTour n°%d\nDernier Coup joué:%s\n",jActuelle->noJoueur,jActuelle->noTour,jActuelle->dernierCoupJoue);
+    printf("\n\nJoueur n°%d\nTour n°%d\nDernier Coup joué:%s\n",jActuelle->noJoueur,jActuelle->noTour,jActuelle->dernierCoupJoue);
 }
 
 void affichageTableau(Board b){
@@ -344,16 +344,17 @@ Board loadGame(char* name,Joueur * joueurAct,Joueur * j1, Joueur * j2) {
             first=false;
         }
 
-        if(jOne){
-            (*j1)->noTour++;
-            (*j1)->dernierCoupJoue=strpbrk(str,"1234567890");
-        }else{
-            (*j2)->noTour++;
-            (*j2)->dernierCoupJoue=strpbrk(str,"1234567890");
         
-        }
         if(strcmp(str,endgame)){
             strcpy(saveline,str);
+            if(jOne){
+                (*j1)->noTour++;
+                sprintf((*j1)->dernierCoupJoue,"%s",strpbrk(str,"1234567890"));
+            }else{
+                (*j2)->noTour++;
+                sprintf((*j2)->dernierCoupJoue,"%s",strpbrk(str,"1234567890"));
+        
+        }
         }
         jOne=!jOne;
     }
