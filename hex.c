@@ -22,7 +22,7 @@ void deleteInformation(Joueur j){
 }
 
 void affichageInformation(Joueur jActuelle){
-    printf("\n\nJoueur n°%d\nTour n°%d\nDernier Coup joué:%s\n",jActuelle->noJoueur,jActuelle->noTour,jActuelle->dernierCoupJoue);
+    printf("\n\nJoueur n°%d avec le pion %c\nTour n°%d\nDernier Coup joué:%s\n",jActuelle->noJoueur,jActuelle->pionDuJoueur,jActuelle->noTour,jActuelle->dernierCoupJoue);
 }
 
 void affichageTableau(Board b){
@@ -88,7 +88,8 @@ bool turnIsValid(Board b, int l, int c) {
  *  son pion                            *
  *                                      */
 Board startNewGame(Joueur * j1, Joueur * j2){
-    printf("\nChoisissez la taille du plateau [superieur à 2]");
+    system("clear");
+    printf("\f\nChoisissez la taille du plateau [superieur à 2]");
     int taille=1;
     while(taille<=2)scanf("%d",&taille);
     Board b=newBoard(taille);
