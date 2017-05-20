@@ -3,6 +3,9 @@
 #include <stdbool.h>
 #include <string.h>
 #include "hex.h"
+#define COLOR_WHITE "\x1b[37m"
+#define COLOR_BLACK "\x1b[30;1m"
+#define RESET_COLOR "\x1b[0m"
 #define CHECKEDBLACK 'B'
 #define CHECKEDWHITE 'W'
 #define MAXSIZE 20
@@ -22,32 +25,48 @@ void deleteInformation(Joueur j){
 }
 
 void affichageInformation(Joueur jActuelle){
-    printf("\n\nJoueur n°%d avec le pion %c\nTour n°%d\nDernier Coup joué:%s\n",jActuelle->noJoueur,jActuelle->pionDuJoueur,jActuelle->noTour,jActuelle->dernierCoupJoue);
+    printf("\n\nJoueur n°%d avec le pion",jActuelle->noJoueur); 
+    if(jActuelle->pionDuJoueur==BLACK){
+        printf(COLOR_BLACK " X" RESET_COLOR "\n");
+    }else{
+        printf(COLOR_WHITE " O" RESET_COLOR "\n");
+    }
+    
+    printf("Tour n°%d\nDernier Coup joué:%s\n",jActuelle->noTour,jActuelle->dernierCoupJoue);
 }
 
 void affichageTableau(Board b){
                 printf("\n\n");
 		for(int i=0;i<b->size;i++){
-			printf("W ");
+			printf(COLOR_WHITE "W " RESET_COLOR);
 		}
-		printf("W/B\n");
+		printf(COLOR_WHITE "W" RESET_COLOR "/" COLOR_BLACK "B" RESET_COLOR "\n");
 		for(int i=0;i<b->size;i++){
             for(int k=0;k<=i;k++)printf(" ");
 			for(int j=0;j<b->size;j++){
-				if(j==0)printf("B ");
+				if(j==0)printf(COLOR_BLACK "B " RESET_COLOR);
 				//printf(" * ");
-				printf("%c ",b->board[i*b->size+j]);
+				//printf("%c ",b->board[i*b->size+j]);
+                                //Les couleurs sont affichés à l'écran
+                                if(b->board[i*b->size+j]!=EMPTY){
+                                    if(b->board[i*b->size+j]==WHITE){
+                                        printf(COLOR_WHITE "O " RESET_COLOR,WHITE);
+                                    }else{
+                                        printf(COLOR_BLACK "X " RESET_COLOR,BLACK);
+                                    }
+                                }else
+                                    printf("  ");
 			}
-			printf("B\n");
+			printf(COLOR_BLACK "B" RESET_COLOR "\n");
 			if(i==b->size-1){
                 for(int k=0;k<=i+1;k++)printf(" ");
 			}
 		}
-		printf("B/W ");
+		printf(COLOR_BLACK "B" RESET_COLOR "/" COLOR_WHITE "W " RESET_COLOR);
 		for(int i=0;i<b->size-1;i++){
-			printf("W ");
+			printf(COLOR_WHITE "W " RESET_COLOR);
 		}
-		printf("W\n * pour les noirs (B) et o pour les blancs (W) \n");
+		printf(COLOR_WHITE "W" RESET_COLOR "\n" COLOR_BLACK " X" RESET_COLOR " pour les noirs (B) et " COLOR_WHITE "O" RESET_COLOR " pour les blancs (W) \n");
 	}
 //Yes
 Board newBoard(int size) {
@@ -93,7 +112,7 @@ Board startNewGame(Joueur * j1, Joueur * j2){
     int taille=1;
     while(taille<=2)scanf("%d",&taille);
     Board b=newBoard(taille);
-    printf("\nJoueur 1 vous voulez quel pion? [soit * ou o] (Joueur 2 aura l'autre pion)");
+    printf("\nJoueur 1 vous voulez quel pion? [soit *='"COLOR_BLACK "X" RESET_COLOR "' ou o='" COLOR_WHITE "O" RESET_COLOR "'] (Joueur 2 aura l'autre pion)\n");
     char pion='.';
     while(pion!=BLACK && pion!=WHITE)scanf("%c",&pion);
     (*j1)->pionDuJoueur=pion;
@@ -287,7 +306,7 @@ bool turn(char* name, bool player, int l, int c) {
         ch = '*';
     fputc(ch,f);
     fseek(f,-16,SEEK_END); /*the cursor is placed at the beginning of the last but one line*/
-    fprintf(f,"\\play %c %d %d\n\\endgame\n\\endhex",ch,l,c);
+    fprintf(f,"\\play %c %d %d\n\\endgame\n\\endhex",ch,l+1,c+1);
     fclose(f);
     return 1;
 }

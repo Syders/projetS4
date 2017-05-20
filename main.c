@@ -37,6 +37,9 @@ void game(Board b, Joueur jAct, Joueur j1, Joueur j2){
     
     do{
         system("clear");
+        if(annule==0){
+            printf("Coup Annulé\n\n");
+        }
         affichageInformation(jAct);
         affichageTableau(b);
         printf("\nJoueur %d a vous jouer:",jAct->noJoueur);
@@ -54,14 +57,13 @@ void game(Board b, Joueur jAct, Joueur j1, Joueur j2){
             while(annule<0 || annule>1)scanf("%d",&annule);
             if(annule==0){
                 b=annulerCoup(b,ligne,colonne);
-                printf("\n Coup annulé\n");
             }else{
                 turn("jeu.txt",(jAct->pionDuJoueur==WHITE),ligne,colonne);
                 if(jAct==j1){
-                    sprintf(j1->dernierCoupJoue,"%d %d",ligne, colonne);
+                    sprintf(j1->dernierCoupJoue,"%d %d",ligne+1, colonne+1);
                     jAct=j2;
                 }else{
-                    sprintf(j2->dernierCoupJoue,"%d %d",ligne, colonne);
+                    sprintf(j2->dernierCoupJoue,"%d %d",ligne+1, colonne+1);
                     jAct=j1;
                 }
             }
