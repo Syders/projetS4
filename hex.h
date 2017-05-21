@@ -21,6 +21,7 @@ typedef struct _joueur{
     int noTour;
 } * Joueur;
 
+Board AITurn (Board b, bool player);
 Joueur creerInformation(int noJoueur);
 void deleteInformation(Joueur j);
 void affichageInformation(Joueur jActuelle);
