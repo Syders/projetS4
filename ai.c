@@ -24,7 +24,7 @@ int minimax (Board b, bool player) {
 }
 
 Board AITurn (Board b, bool player) {
-    /*player: 1 = white; 0 = black*/
+    /*AI player: 1 = white; 0 = black*/
     int current, score, l, c;
     l = c = -1;
     if (player) //white
