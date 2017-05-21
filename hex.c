@@ -11,6 +11,9 @@
 #define MAXSIZE 20
 
 Joueur creerInformation(int noJoueur){
+    /*
+     * Create the information for the player
+     */
     Joueur j=(Joueur)malloc(sizeof(struct _joueur));
     j->noJoueur=noJoueur;
     j->dernierCoupJoue=(char *)malloc(sizeof(char)*10);
@@ -21,10 +24,14 @@ Joueur creerInformation(int noJoueur){
 }
 
 void deleteInformation(Joueur j){
+    //Free the player malloc
     free(j);
 }
 
 void affichageInformation(Joueur jActuelle){
+    /*
+     * Print the information from the player
+     */
     printf("\n\nJoueur n°%d avec le pion",jActuelle->noJoueur); 
     if(jActuelle->pionDuJoueur==BLACK){
         printf(COLOR_BLACK " X" RESET_COLOR "\n");
@@ -36,6 +43,10 @@ void affichageInformation(Joueur jActuelle){
 }
 
 void affichageTableau(Board b){
+    /*
+     * Print the board 
+     * whith the player color
+     */
                 printf("\n\n");
 		for(int i=0;i<b->size;i++){
 			printf(COLOR_WHITE "W " RESET_COLOR);
@@ -87,6 +98,7 @@ Board newBoard(int size) {
 }
 
 void freeBoard(Board b){
+    //Free the malloc from the board
     free(b->board);
     free(b);
 }
@@ -101,12 +113,13 @@ bool turnIsValid(Board b, int l, int c) {
     return b->board[l*b->size+c] == EMPTY;
 }
 
-/*                                      *
- *  Demarre une nouvelle partie         *
- *  et demande au joueur 1 de choisir   *
- *  son pion                            *
- *                                      */
+
 Board startNewGame(Joueur * j1, Joueur * j2){
+/*                                      
+ * Demarre une nouvelle partie         
+ * et demande au joueur 1 de choisir   
+ * son pion                            
+ */
     system("clear");
     printf("\f\nChoisissez la taille du plateau [superieur à 2]");
     int taille=1;
@@ -119,7 +132,7 @@ Board startNewGame(Joueur * j1, Joueur * j2){
     (*j2)->pionDuJoueur=(pion==BLACK) ? WHITE: BLACK;
     return b;
 }
-//YES
+
 Board newTurn(Board b, bool player, int l, int c) {
     /*Allows to play a turn (ASSUMES THE TURN IS VALID)
         b is the board of the game
@@ -134,7 +147,7 @@ Board newTurn(Board b, bool player, int l, int c) {
         b->board[l*b->size+c] = BLACK;
     return b;
 }
-//X
+
 bool checkBlackWinner(Board b, int l, int c) {
     /*Recursive function that checks whether a plot is a black one that hasn't
     been checked previously and calls iself with the coordinates of the
@@ -165,7 +178,7 @@ bool checkBlackWinner(Board b, int l, int c) {
         return 1;
     return 0;
 }
-//X
+
 bool checkWhiteWinner(Board b, int l, int c) {
     /*Recursive function that checks whether a plot is a white one that hasn't
     been checked previously and calls iself with the coordinates of the
@@ -196,7 +209,7 @@ bool checkWhiteWinner(Board b, int l, int c) {
         return 1;
     return 0;
 }
-//X
+
 Board cleanBoard(Board b) {
     /*Returns to a normal state all the "checked" plots
         b is the board to clean
@@ -233,7 +246,7 @@ char checkWinner(Board b) {
     b = cleanBoard(b);
     return EMPTY;
 }
-//Yes
+
 void newGame(char* name, int size) {
     /*Creates a new game
         name is the name of the file
@@ -249,7 +262,7 @@ void newGame(char* name, int size) {
     fputs("\\endboard\n\\game\n\\endgame\n\\endhex",f);
     fclose(f);
 }
-//X
+
 bool isValid(char* name, int l, int c) {
     /*Checks whether the turn is valid
         name is the name of the game (the game has already been created)
@@ -320,11 +333,13 @@ bool savePresent(char * name){
 
 
 Board loadGame(char* name,Joueur * joueurAct,Joueur * j1, Joueur * j2) {
-    /* Creates a board based on the savefile
-        name is the name of the game (the game has already been created)
-        Returns the board  corresponding to the game 
-        and the last player who have played
-    */
+    /* 
+     * Creates a board based on the savefile
+     *   name is the name of the game (the game has already been created)
+     *   Returns the board  corresponding to the game 
+     *   the last player who have played,
+     *   
+     */
     int size;
     int ch; /*the character to store the value of a tile*/
     FILE *f = fopen(name,"rt");
@@ -353,6 +368,7 @@ Board loadGame(char* name,Joueur * joueurAct,Joueur * j1, Joueur * j2) {
     bool first=true,jOne=true;//jOne pour compter le nombre de coup joué
     while(strcmp(str,endgame)){
         fgets(str, MAXSIZE, f);
+        //The first player is always J1
         if(first){
             if(str[6]==WHITE){
                 (*j1)->pionDuJoueur=WHITE;
@@ -364,7 +380,7 @@ Board loadGame(char* name,Joueur * joueurAct,Joueur * j1, Joueur * j2) {
             first=false;
         }
 
-        
+        //Know the last move from the player
         if(strcmp(str,endgame)){
             strcpy(saveline,str);
             if(jOne){
@@ -384,6 +400,9 @@ Board loadGame(char* name,Joueur * joueurAct,Joueur * j1, Joueur * j2) {
 }
 
 void caseJoue(int size,int * l, int * c){
+    /*
+     * Demand the player the move he want to do
+     */
     printf("\nLigne:[compris entre 1 et %d]", size);
     int ligne,colonne;
     do{
@@ -398,6 +417,7 @@ void caseJoue(int size,int * l, int * c){
 }
 
 Board annulerCoup(Board b, int l, int c){
+    //The move become EMPTY to clean it
     b->board[l*b->size+c]=EMPTY;
     return b;
 }

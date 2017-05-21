@@ -6,8 +6,13 @@
 #include "hex.h"
 
 
-//Le premier menu
-int principalMenu(){
+int mainMenu(){
+    /*
+     * The main menu demand to the players
+     * if they want to start a new or
+     * to load a game if it's a save
+     * or to quit the game
+     */
     bool savePre;
     printf("HEX Version 1.0 \n\nCommencer une partie[Taper 1]\n");
     if((savePre=savePresent("jeu.txt"))){
@@ -26,38 +31,51 @@ int principalMenu(){
     return choix;
 }
 
-//Le fonctionnement du jeu
-void game(Board b, Joueur jAct, Joueur j1, Joueur j2){
+
+int game(Board b, Joueur jAct, Joueur j1, Joueur j2){
+    /*
+     * The game call function in hex.c
+     * and ask the player the move he want to do,
+     * if he is sure of the move, if he want to quit,
+     * if he want to save the game
+     * The return to the main menu is active if the players want
+     */
     char joueurG;
-    int annule;
+    int annule=3;
     int ligne,colonne;
     int termine;
-    //printf("\nPion J1= %c,dernierCoupJoue= %s",j1->pionDuJoueur,j1->dernierCoupJoue);
-    //printf("\nPion J2= %c,dernierCoupJoue= %s",j2->pionDuJoueur,j2->dernierCoupJoue);
-    
+    bool notValid;
     do{
         system("clear");
+        //Si le c
         if(annule==0){
-            printf("Coup Annulé\n\n");
+            printf("Coup Annulé\n");
         }
         affichageInformation(jAct);
         affichageTableau(b);
         printf("\nJoueur %d a vous jouer:",jAct->noJoueur);
         do{
             caseJoue(b->size,&ligne,&colonne);
-            if(!turnIsValid(b,ligne,colonne))
+            //The move can be no valid so he restart the move
+            if((notValid=(!turnIsValid(b,ligne,colonne))))
                 printf("\nCase non valide.Recommencer.");
-        }while(!turnIsValid(b,ligne,colonne));
+        }while(notValid);
+        //put the move on the board
         b=newTurn(b,(jAct->pionDuJoueur==WHITE),ligne,colonne);
         system("clear");
         affichageTableau(b);
+        //If no winner now
         if((joueurG=checkWinner(b))==EMPTY){
             annule=3;
-            printf("\nEtes-vous sûre de votre coup? [1 pour oui,0 pour non]");
+            //Demand if the player is sure of the move he made
+            printf("\nEtes-vous sûre de votre coup? [1 pour oui,0 pour non]\n");
             while(annule<0 || annule>1)scanf("%d",&annule);
+            // if not sure
             if(annule==0){
+                //the move is clear from board
                 b=annulerCoup(b,ligne,colonne);
             }else{
+                //else the move is save for the actual player
                 turn("jeu.txt",(jAct->pionDuJoueur==WHITE),ligne,colonne);
                 if(jAct==j1){
                     sprintf(j1->dernierCoupJoue,"%d %d",ligne+1, colonne+1);
@@ -68,7 +86,8 @@ void game(Board b, Joueur jAct, Joueur j1, Joueur j2){
                 }
             }
             system("clear");
-            printf("\nVoulez-vous arrêter la partie [1 pour oui, 0 pour non]");
+            //demand the players if they want to stop
+            printf("\nVoulez-vous arrêter la partie [1 pour oui, 0 pour non]\n");
             termine=3;
             while(termine<0 || termine>1)scanf("%d",&termine);
         }
@@ -82,11 +101,12 @@ void game(Board b, Joueur jAct, Joueur j1, Joueur j2){
     }
     //If not a finish game
     if(termine==1){
-        printf("\f\nVoulez-vous sauvegarder la partie? [1 pour oui,0 pour non]");
+        printf("\nVoulez-vous sauvegarder la partie? [1 pour oui,0 pour non]\n");
         termine=3;
         while(termine<0 || termine>1)scanf("%d",&termine);
         if(termine==0)execlp("rm","rm","jeu.txt",NULL);
     }else{
+        // else clean the save if it's finish
         execlp("rm","rm","jeu.txt",NULL);
     }
     
@@ -95,6 +115,12 @@ void game(Board b, Joueur jAct, Joueur j1, Joueur j2){
     deleteInformation(j2);
     deleteInformation(jAct);
     freeBoard(b);
+    //Demand if they want to return to main menu
+    system("clear");
+    termine=3;
+    printf("\n\nVoulez-vous retourner au menu principal? [1 pour oui,0 pour non]\n");
+    while(termine<0 || termine>1)scanf("%d",&termine);
+    return termine;
 }
 
 
@@ -103,19 +129,23 @@ int main() {
     Joueur j2;
     Joueur joueurAct;
     Board b;
-    j1=creerInformation(1);
-    j2=creerInformation(2);
-    joueurAct=creerInformation(3);
-    int choix=principalMenu();
-    if(choix==1){
-        b=startNewGame(&j1,&j2);
-        joueurAct=j1;
-        newGame("jeu.txt",b->size);
-    }else if(choix==2)
-        b=loadGame("jeu.txt",&joueurAct,&j1,&j2);
-    else
-        return 0;
-    game(b,joueurAct,j1,j2);
-    
+    int retour=1;
+    int choix;
+    while(retour==1){
+        choix=mainMenu();
+        if(choix==1 || choix==2){
+            j1=creerInformation(1);
+            j2=creerInformation(2);
+            joueurAct=creerInformation(3);
+            if(choix==1){
+                b=startNewGame(&j1,&j2);
+                joueurAct=j1;
+                newGame("jeu.txt",b->size);
+            }else if(choix==2)
+                b=loadGame("jeu.txt",&joueurAct,&j1,&j2);
+            retour=game(b,joueurAct,j1,j2);
+        }else
+            retour=0;
+    }
     return 0;
 }
