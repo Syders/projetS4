@@ -1,4 +1,4 @@
-#include <stdio.h>
+﻿#include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
@@ -12,11 +12,11 @@
 
 //AI section
 
-int minimax (Board b, bool player) {
+int minimax (Board b, bool player, int l, int c) {
     /*player: 1 = white; 0 = black*/
-    if (checkWinner(b) == BLACK)
+    if (checkWinner(b,l,c) == BLACK)
         return 1;
-    if (checkWinner(b) == WHITE)
+    if (checkWinner(b,l,c) == WHITE)
         return -1;
     int current, score;
     if (player) //white
@@ -27,22 +27,18 @@ int minimax (Board b, bool player) {
         for (int j = 0; j < b->size; j++)
             if (turnIsValid(b,i,j)) {
                 b = newTurn(b,player,i,j);
-                current = minimax(b,!player);
-                if ((player && (current < score)) || (!player && (current > score)))
-                    score = current;
+                current = minimax(b,!player,i,j);
                 b = annulerCoup(b,i,j);
+                if ((player && (current == -1)) || (!player && (current == 1)))
+                    return current;
             }
     return score;
 }
 
-Board AITurn (Board b, bool player) {
+Board AITurn (Board b, bool player, int *lig, int *col) {
     /*AI player: 1 = white; 0 = black*/
-    int current, score, l, c;
+    int current, l, c;
     l = c = -1;
-    if (player) //white
-        score = 1;
-    else //black
-        score = -1;
     for (int i = 0; i < b->size; i++)
         for (int j = 0; j < b->size; j++)
             if (turnIsValid(b,i,j)) {
@@ -51,14 +47,17 @@ Board AITurn (Board b, bool player) {
                     c = j;
                 }
                 b = newTurn(b,player,i,j);
-                current = minimax(b,!player);
-                if ((player && (current < score)) || (!player && (current > score))) {
-                    score = current;
-                    l = i;
-                    c = j;
-                }
+		printf("(%d,%d)\n",i,j);
+                current = minimax(b,!player,i,j);
                 b = annulerCoup(b,i,j);
+                if ((player && (current == -1)) || (!player && (current == 1))) {
+		    *lig = i;
+		    *col = j;
+                    return newTurn(b,player,i,j);
+		}
             }
+    *lig = l;
+    *col = c;
     return newTurn(b,player,l,c);
 }
 
@@ -201,69 +200,75 @@ Board newTurn(Board b, bool player, int l, int c) {
         b->board[l*b->size+c] = BLACK;
     return b;
 }
-
-bool checkBlackWinner(Board b, int l, int c) {
-    /*Recursive function that checks whether a plot is a black one that hasn't
-    been checked previously and calls iself with the coordinates of the
-    neighbouring plots
-        b is the board of the game
-        l is the line of the plot being checked
-        c is the column of the plot being checked
-    */
-    if ((l == -1) || (c == -1) || (l == b->size))
-        return 0;
-    if (c == b->size)
-        return 1;
+int calc(int i, int x) {
+    if ((i % 2 == 1) && (x % 2 == 0))
+	x = x + 1;
+    if ((i >= 2) && (x < 2))
+	x = x + 2;
+    return x;
+}
+int checkBlackWinner(Board b, int l, int c, int x) {
+    if (l == -1 || l == b->size)
+	return x;
+    if ((c == -1) && (x % 2 == 0))
+	return x + 1;
+    if ((c == b->size) && (x < 2))
+	return x + 2;
     if (b->board[l*b->size+c] == BLACK)
-        b->board[l*b->size+c] = CHECKEDBLACK;
+	b->board[l*b->size+c] = CHECKEDBLACK;
     else
-        return 0;
-    if (checkBlackWinner(b,l+1,c))
-        return 1;
-    if (checkBlackWinner(b,l-1,c))
-        return 1;
-    if (checkBlackWinner(b,l,c+1))
-        return 1;
-    if (checkBlackWinner(b,l,c-1))
-        return 1;
-    if (checkBlackWinner(b,l+1,c-1))
-        return 1;
-    if (checkBlackWinner(b,l-1,c+1))
-        return 1;
-    return 0;
+	return x;
+    x = calc(checkBlackWinner(b,l,c-1,x),x);
+    if (x == 3)
+	return 3;
+    x = calc(checkBlackWinner(b,l,c+1,x),x);
+    if (x == 3)
+	return 3;
+    x = calc(checkBlackWinner(b,l+1,c-1,x),x);
+    if (x == 3)
+	return 3;
+    x = calc(checkBlackWinner(b,l-1,c+1,x),x);
+    if (x == 3)
+	return 3;
+    x = calc(checkBlackWinner(b,l+1,c,x),x);
+    if (x == 3)
+	return 3;
+    x = calc(checkBlackWinner(b,l-1,c,x),x);
+    if (x == 3)
+	return 3;
+    return x;
 }
-
-bool checkWhiteWinner(Board b, int l, int c) {
-    /*Recursive function that checks whether a plot is a white one that hasn't
-    been checked previously and calls iself with the coordinates of the
-    neighbouring plots
-        b is the board of the game
-        l is the line of the plot being checked
-        c is the column of the plot being checked
-    */
-    if ((l == -1) || (c == -1) || (c == b->size))
-        return 0;
-    if (l == b->size)
-        return 1;
+int checkWhiteWinner(Board b, int l, int c, int x) {
+    if (c == -1 || c == b->size)
+	return x;
+    if ((l == -1) && (x % 2 == 0))
+	return x + 1;
+    if ((l == b->size) && (x < 2))
+	return x + 2;
     if (b->board[l*b->size+c] == WHITE)
-        b->board[l*b->size+c] = CHECKEDWHITE;
+	b->board[l*b->size+c] = CHECKEDWHITE;
     else
-        return 0;
-    if (checkWhiteWinner(b,l+1,c))
-        return 1;
-    if (checkWhiteWinner(b,l-1,c))
-        return 1;
-    if (checkWhiteWinner(b,l,c+1))
-        return 1;
-    if (checkWhiteWinner(b,l,c-1))
-        return 1;
-    if (checkWhiteWinner(b,l+1,c-1))
-        return 1;
-    if (checkWhiteWinner(b,l-1,c+1))
-        return 1;
-    return 0;
+	return x;
+    x = calc(checkWhiteWinner(b,l-1,c,x),x);
+    if (x == 3)
+	return 3;
+    x = calc(checkWhiteWinner(b,l+1,c,x),x);
+    if (x == 3)
+	return 3;
+    x = calc(checkWhiteWinner(b,l-1,c+1,x),x);
+    if (x == 3)
+	return 3;
+    x = calc(checkWhiteWinner(b,l+1,c-1,x),x);
+    if (x == 3)
+	return 3;
+    x = calc(checkWhiteWinner(b,l,c+1,x),x);
+    if (x == 3)
+	return 3;
+    x = calc(checkWhiteWinner(b,l,c-1,x),x);
+    if (x == 3)
+	return 3;
+    return x;
 }
-
 Board cleanBoard(Board b) {
     /*Returns to a normal state all the "checked" plots
         b is the board to clean
@@ -280,23 +285,27 @@ Board cleanBoard(Board b) {
     return b;
 }
 //Yes,checkBlackWinner,checkWhiteWinner,cleanBoard
-char checkWinner(Board b) {
+char checkWinner(Board b, int l, int c) {
     /*Checks who is the winner (if there is one)
         b is the board of the game
         Returns EMPTY if no winner, BLACK or WHITE if there is one
     */
-    for (int i = 0; i < b->size; i++){
-        if (checkBlackWinner(b,i,0)) {
+    if (b->board[l*b->size+c] == EMPTY) { //ne doit jamais arriver !
+	printf("Erreur checkWinner !\n");
+	return EMPTY;
+    }
+    if (b->board[l*b->size+c] == BLACK) {
+        if (checkBlackWinner(b,l,c,0) == 3) {
             b = cleanBoard(b);
             return BLACK;
         }
-	}
-    for (int i = 0; i < b->size; i++){
-        if (checkWhiteWinner(b,0,i)) {
+    }
+    if (b->board[l*b->size+c] == WHITE) {
+        if (checkWhiteWinner(b,l,c,0) == 3) {
             b = cleanBoard(b);
             return WHITE;
         }
-	}
+    }
     b = cleanBoard(b);
     return EMPTY;
 }

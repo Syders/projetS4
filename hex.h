@@ -21,7 +21,7 @@ typedef struct _joueur{
     int noTour;
 } * Joueur;
 
-Board AITurn (Board b, bool player);
+Board AITurn (Board b, bool player, int *lig, int *col);
 Joueur creerInformation(int noJoueur);
 void deleteInformation(Joueur j);
 void affichageInformation(Joueur jActuelle);
@@ -32,7 +32,7 @@ void affichageTableau(Board b);
 Board newBoard(int size);
 bool turnIsValid(Board b, int l, int c) ;
 Board newTurn(Board b, bool player, int l, int c);
-char checkWinner(Board b);
+char checkWinner(Board b, int l, int c);
 void newGame(char * name, int size);
 bool turn(char* name, bool player, int l, int c);
 Board loadGame(char* name,Joueur * joueurAct,Joueur * j1, Joueur * J2);

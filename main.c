@@ -1,4 +1,4 @@
-#include <stdio.h>
+﻿#include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
@@ -66,7 +66,7 @@ int game(Board b, Joueur jAct, Joueur j1, Joueur j2, bool iaActive){
             system("clear");
             affichageTableau(b);
             //If no winner now
-            if((joueurG=checkWinner(b))==EMPTY){
+            if((joueurG=checkWinner(b,ligne,colonne))==EMPTY){
                 annule=3;
                 //Demand if the player is sure of the move he made
                 printf("\nEtes-vous sûre de votre coup? [1 pour oui,0 pour non]\n");
@@ -93,8 +93,9 @@ int game(Board b, Joueur jAct, Joueur j1, Joueur j2, bool iaActive){
                 while(termine<0 || termine>1)scanf("%d",&termine);
             }
         }else{
-            b=AITurn(b,j2->pionDuJoueur==WHITE);
-            joueurG=checkWinner(b);
+	    int lig, col;
+            b=AITurn(b,j2->pionDuJoueur==WHITE,&lig,&col);
+            joueurG=checkWinner(b,lig,col);
             jAct=j1;
         }
         
