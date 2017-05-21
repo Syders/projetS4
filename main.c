@@ -47,7 +47,7 @@ int game(Board b, Joueur jAct, Joueur j1, Joueur j2, bool iaActive){
     bool notValid;
     do{
         system("clear");
-        //Si le c
+        //Si le coup est annulé
         if(annule==0){
             printf("Coup Annulé\n");
         }
@@ -95,15 +95,18 @@ int game(Board b, Joueur jAct, Joueur j1, Joueur j2, bool iaActive){
         }else{
             b=AITurn(b,j2->pionDuJoueur==WHITE);
             joueurG=checkWinner(b);
+            jAct=j1;
         }
         
     }while(joueurG==EMPTY && termine==0);
     //If a winner is designed
+    system("clear");
+    if(iaActive)affichageTableau(b);
     if(joueurG==j1->pionDuJoueur) {
-        printf("\n\nLe gagnant est le joueur 1\n");
+        printf("\n\n\nLe gagnant est le joueur 1\n");
     }
     else if (joueurG==j2->pionDuJoueur){
-        printf("\n\nLe gagnant est le joueur 2\n");
+        printf("\n\n\nLe gagnant est le joueur 2\n");
     }
     //If not a finish game
     if(termine==1){
@@ -111,7 +114,7 @@ int game(Board b, Joueur jAct, Joueur j1, Joueur j2, bool iaActive){
         termine=3;
         while(termine<0 || termine>1)scanf("%d",&termine);
         if(termine==0)execlp("rm","rm","jeu.txt",NULL);
-    }else{
+    }else if(termine==0 && !iaActive){
         // else clean the save if it's finish
         execlp("rm","rm","jeu.txt",NULL);
     }
@@ -122,7 +125,6 @@ int game(Board b, Joueur jAct, Joueur j1, Joueur j2, bool iaActive){
     deleteInformation(jAct);
     freeBoard(b);
     //Demand if they want to return to main menu
-    system("clear");
     termine=3;
     printf("\n\nVoulez-vous retourner au menu principal? [1 pour oui,0 pour non]\n");
     while(termine<0 || termine>1)scanf("%d",&termine);
@@ -151,6 +153,7 @@ int main() {
                     newGame("jeu.txt",b->size);
                 }else{
                     system("clear");
+                    iaActive=true;
                     printf("\nVoulez-vous que l'ia commence?[1 pour oui, 0 pour non]\n");
                     while(choix<0 || choix>1)scanf("%d",&choix);
                     joueurAct=(choix==1)?j2:j1;
