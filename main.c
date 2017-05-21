@@ -14,7 +14,7 @@ int mainMenu(){
      * or to quit the game
      */
     bool savePre;
-    printf("HEX Version 1.0 \n\nCommencer une partie[Taper 1]\n");//Commencer une partie avec l'ia[Taper 2]\n");
+    printf("HEX Version 1.0 \n\nCommencer une partie[Taper 1]\nCommencer une partie avec l'ia[Taper 2]\n");
     if((savePre=savePresent("jeu.txt"))){
             printf("Charger une partie déja commencer(sans ia)[Taper 3]\n");
     }
@@ -92,10 +92,10 @@ int game(Board b, Joueur jAct, Joueur j1, Joueur j2, bool iaActive){
                 termine=3;
                 while(termine<0 || termine>1)scanf("%d",&termine);
             }
-        }/*else{
+        }else{
             b=AITurn(b,j2->pionDuJoueur==WHITE);
             joueurG=checkWinner(b);
-        }*/
+        }
         
     }while(joueurG==EMPTY && termine==0);
     //If a winner is designed
